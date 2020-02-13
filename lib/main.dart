@@ -1,25 +1,9 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 
 void main() {
-  // See https://github.com/flutter/flutter/wiki/Desktop-shells#target-platform-override
   debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-
   runApp(new MyApp());
 }
 
@@ -27,60 +11,150 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        // See https://github.com/flutter/flutter/wiki/Desktop-shells#fonts
-        fontFamily: 'Roboto',
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class HomePage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+class _HomePageState extends State<HomePage> {
+  bool ohTurn = true; // the first player is O
+  List<String> displayExOh = <String>['', '', '', '', '', '', '', '', ''];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+      backgroundColor: Colors.grey[800],
+      body: GridView.builder(
+          itemCount: 9,
+          gridDelegate:
+              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                _tapped(index);
+              },
+              child: Container(
+                decoration:
+                    BoxDecoration(border: Border.all(color: Colors.grey[700])),
+                child: Center(
+                  child: Text(
+                    displayExOh[index],
+//                    index.toString(),
+                    style: TextStyle(color: Colors.white, fontSize: 40),
+                  ),
+                ),
+              ),
+            );
+          }),
     );
+  }
+
+  void _tapped(int index) {
+    setState(() {
+      if (ohTurn && displayExOh[index] == '')
+        displayExOh[index] = 'O';
+      else if (displayExOh[index] == '') displayExOh[index] = 'X';
+
+      ohTurn = !ohTurn;
+      _checkWinner();
+    });
+  }
+
+  void _checkWinner() {
+    //row 1
+    if (displayExOh[0] == displayExOh[1] &&
+        displayExOh[0] == displayExOh[2] &&
+        displayExOh[0] != '') {
+      _showWinDialog(displayExOh[0]);
+    }
+    //row 2
+    else if (displayExOh[3] == displayExOh[4] &&
+        displayExOh[3] == displayExOh[5] &&
+        displayExOh[3] != '') {
+      _showWinDialog(displayExOh[3]);
+    }
+    //row 3
+    else if (displayExOh[6] == displayExOh[7] &&
+        displayExOh[6] == displayExOh[8] &&
+        displayExOh[6] != '') {
+      _showWinDialog(displayExOh[6]);
+    }
+    //column 1
+    else if (displayExOh[0] == displayExOh[3] &&
+        displayExOh[0] == displayExOh[6] &&
+        displayExOh[0] != '') {
+      _showWinDialog(displayExOh[0]);
+    }
+    //column 2
+    else if (displayExOh[1] == displayExOh[4] &&
+        displayExOh[1] == displayExOh[7] &&
+        displayExOh[1] != '') {
+      _showWinDialog(displayExOh[1]);
+    }
+    //column 3
+    else if (displayExOh[2] == displayExOh[5] &&
+        displayExOh[2] == displayExOh[8] &&
+        displayExOh[2] != '') {
+      _showWinDialog(displayExOh[2]);
+    }
+    //diagonal 1
+    else if (displayExOh[0] == displayExOh[4] &&
+        displayExOh[0] == displayExOh[8] &&
+        displayExOh[0] != '') {
+      _showWinDialog(displayExOh[0]);
+    }
+    //diagonal 2
+    else if (displayExOh[2] == displayExOh[4] &&
+        displayExOh[2] == displayExOh[6] &&
+        displayExOh[2] != '') {
+      _showWinDialog(displayExOh[2]);
+    }
+    //tie game
+    else if (displayExOh[0] != '' &&
+        displayExOh[1] != '' &&
+        displayExOh[2] != '' &&
+        displayExOh[3] != '' &&
+        displayExOh[4] != '' &&
+        displayExOh[5] != '' &&
+        displayExOh[6] != '' &&
+        displayExOh[7] != '' &&
+        displayExOh[8] != '') {
+      _showTieDialog();
+    }
+  }
+
+  void _showWinDialog(String winner) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title:
+                Text('WINNER IS ' + winner + '!', textAlign: TextAlign.center),
+            backgroundColor: Colors.deepOrangeAccent,
+          );
+        });
+    clearGrid();
+  }
+
+  void _showTieDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("NO ONE WINS!", textAlign: TextAlign.center),
+            backgroundColor: Colors.greenAccent,
+          );
+        });
+    clearGrid();
+  }
+
+  void clearGrid() {
+    for (int i = 0; i < 9; i++) displayExOh[i] = '';
   }
 }
